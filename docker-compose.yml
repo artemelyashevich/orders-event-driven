@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+
+  mongodb:
+    image: mongo:latest
+    container_name: "mongodb"
+    ports:
+      - 27070:27017
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    hostname: kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ORDER:ORDER
+      KAFKA_INTER_BROKER_LISTENER_NAME: ORDER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  email:
+    build:
+      context: .
+      dockerfile: email/Dockerfile
+    ports:
+      - 8083:8083
+
+  order:
+    build:
+      context: .
+      dockerfile: email/Dockerfile
+    ports:
+      - 8082:8082
+
+  stock:
+    build:
+      context: .
+      dockerfile: stock/Dockerfile
+    ports:
+      - 8081:8081
